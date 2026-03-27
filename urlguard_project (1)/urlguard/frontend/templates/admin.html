@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URLGuard — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <link rel="stylesheet" href="/static/css/dashboard.css"/>
+</head>
+<body class="dash-body">
+
+<div class="bg-grid" aria-hidden="true"></div>
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">⬡</span>
+    <span>URL<strong>Guard</strong></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#overview"     class="nav-item active" onclick="showTab('overview',this)">
+      <span class="nav-icon">📊</span> Overview
+    </a>
+    <a href="#scans"        class="nav-item" onclick="showTab('scans',this)">
+      <span class="nav-icon">🔍</span> Scan Logs
+    </a>
+    <a href="#users"        class="nav-item" onclick="showTab('users',this)">
+      <span class="nav-icon">👥</span> Users
+    </a>
+    <a href="#submissions"  class="nav-item" onclick="showTab('submissions',this)">
+      <span class="nav-icon">📥</span> URL Submissions
+      {% if stats.pending_submissions > 0 %}
+      <span class="nav-badge">{{ stats.pending_submissions }}</span>
+      {% endif %}
+    </a>
+    <a href="#export"       class="nav-item" onclick="showTab('export',this)">
+      <span class="nav-icon">📦</span> Export Dataset
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ user.username[0].upper() }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ user.username }}</div>
+        <div class="user-role">Administrator</div>
+      </div>
+    </div>
+    <a href="/logout" class="logout-btn">Sign Out</a>
+  </div>
+</aside>
+
+<!-- ── Main Content ── -->
+<main class="dash-main">
+
+  <!-- Top bar -->
+  <div class="dash-topbar">
+    <div class="topbar-title" id="tabTitle">Overview</div>
+    <div class="topbar-actions">
+      <a href="/" class="topbar-btn" target="_blank">🔗 Open Scanner</a>
+      <div class="topbar-time" id="liveTime"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: OVERVIEW ═══ -->
+  <div class="tab-panel active" id="tab-overview">
+
+    <!-- Stat cards -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:var(--cyan-dim);color:var(--cyan)">🔍</div>
+        <div class="stat-card-body">
+          <div class="stat-card-num">{{ stats.total_scans }}</div>
+          <div class="stat-card-lbl">Total Scans</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:var(--red-dim);color:var(--red)">⚠</div>
+        <div class="stat-card-body">
+          <div class="stat-card-num">{{ stats.total_threats }}</div>
+          <div class="stat-card-lbl">Threats Detected</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:var(--green-dim);color:var(--green)">👥</div>
+        <div class="stat-card-body">
+          <div class="stat-card-num">{{ stats.total_users }}</div>
+          <div class="stat-card-lbl">Registered Users</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon" style="background:var(--amber-dim);color:var(--amber)">📥</div>
+        <div class="stat-card-body">
+          <div class="stat-card-num">{{ stats.pending_submissions }}</div>
+          <div class="stat-card-lbl">Pending Submissions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat breakdown + top hostnames -->
+    <div class="dash-grid-2">
+      <!-- Threat breakdown -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3>Threat Breakdown</h3>
+        </div>
+        <div class="threat-breakdown">
+          {% set total = stats.total_scans or 1 %}
+          <div class="tb-item">
+            <div class="tb-label"><span class="tb-dot safe"></span> Safe</div>
+            <div class="tb-bar-track">
+              <div class="tb-bar-fill safe" style="width:{{ ((stats.total_scans - stats.total_threats) / total * 100)|round(1) }}%"></div>
+            </div>
+            <div class="tb-count">{{ stats.total_scans - stats.total_threats }}</div>
+          </div>
+          <div class="tb-item">
+            <div class="tb-label"><span class="tb-dot phishing"></span> Phishing</div>
+            <div class="tb-bar-track">
+              <div class="tb-bar-fill phishing" style="width:{{ (stats.phishing_count / total * 100)|round(1) }}%"></div>
+            </div>
+            <div class="tb-count">{{ stats.phishing_count }}</div>
+          </div>
+          <div class="tb-item">
+            <div class="tb-label"><span class="tb-dot defacement"></span> Defacement</div>
+            <div class="tb-bar-track">
+              <div class="tb-bar-fill defacement" style="width:{{ (stats.defacement_count / total * 100)|round(1) }}%"></div>
+            </div>
+            <div class="tb-count">{{ stats.defacement_count }}</div>
+          </div>
+          <div class="tb-item">
+            <div class="tb-label"><span class="tb-dot malware"></span> Malware</div>
+            <div class="tb-bar-track">
+              <div class="tb-bar-fill malware" style="width:{{ (stats.malware_count / total * 100)|round(1) }}%"></div>
+            </div>
+            <div class="tb-count">{{ stats.malware_count }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top hostnames -->
+      <div class="dash-card">
+        <div class="dash-card-header"><h3>Most Scanned Domains</h3></div>
+        <div class="hostname-list">
+          {% if stats.top_hostnames %}
+            {% for h in stats.top_hostnames[:8] %}
+            <div class="hostname-row">
+              <span class="hn-icon class-{{ h.predicted_class }}">
+                {% if h.predicted_class == 'benign' %}✓
+                {% elif h.predicted_class == 'phishing' %}🎣
+                {% elif h.predicted_class == 'defacement' %}⚡
+                {% else %}☠{% endif %}
+              </span>
+              <span class="hn-name">{{ h.hostname }}</span>
+              <span class="hn-count">{{ h.cnt }}x</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">No scan data yet</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h3>Recent Scan Activity</h3>
+        <button class="card-btn" onclick="showTab('scans', document.querySelector('[onclick*=scans]'))">View All →</button>
+      </div>
+      <table class="dash-table">
+        <thead>
+          <tr><th>URL</th><th>User</th><th>Result</th><th>Confidence</th><th>Time</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          {% for log in recent_scans %}
+          <tr>
+            <td class="url-cell" title="{{ log.url }}">{{ log.url[:55] }}{% if log.url|length > 55 %}…{% endif %}</td>
+            <td>{{ log.username or 'guest' }}</td>
+            <td><span class="badge badge-{{ log.predicted_class }}">{{ log.predicted_class }}</span></td>
+            <td class="mono">{{ "%.1f"|format(log.confidence) }}%</td>
+            <td class="mono">{{ "%.1f"|format(log.scan_time_ms) }}ms</td>
+            <td class="mono text-muted">{{ log.scanned_at[11:16] }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="empty-state">No scans yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: SCAN LOGS ═══ -->
+  <div class="tab-panel" id="tab-scans">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h3>All Scan Logs <span class="count-badge">{{ all_scans|length }}</span></h3>
+        <div class="table-filters">
+          <input type="text" id="scanFilter" placeholder="Filter by URL or class…" oninput="filterTable('scanTable', this.value)"/>
+          <a href="/admin/export/scans" class="card-btn">↓ Export CSV</a>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="dash-table" id="scanTable">
+          <thead>
+            <tr><th>URL</th><th>User</th><th>Class</th><th>Confidence</th><th>Risk</th><th>Rule</th><th>IP</th><th>Scanned At</th></tr>
+          </thead>
+          <tbody>
+            {% for log in all_scans %}
+            <tr>
+              <td class="url-cell" title="{{ log.url }}">{{ log.url[:50] }}{% if log.url|length > 50 %}…{% endif %}</td>
+              <td>{{ log.username or 'guest' }}</td>
+              <td><span class="badge badge-{{ log.predicted_class }}">{{ log.predicted_class }}</span></td>
+              <td class="mono">{{ "%.1f"|format(log.confidence) }}%</td>
+              <td class="mono">{{ log.risk_score }}/100</td>
+              <td class="mono text-muted">{{ log.rule_used or '—' }}</td>
+              <td class="mono text-muted">{{ log.ip_address or '—' }}</td>
+              <td class="mono text-muted">{{ log.scanned_at }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="empty-state">No scan logs</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: USERS ═══ -->
+  <div class="tab-panel" id="tab-users">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h3>Registered Users <span class="count-badge">{{ users|length }}</span></h3>
+        <input type="text" id="userFilter" placeholder="Filter users…" oninput="filterTable('userTable', this.value)"/>
+      </div>
+      <table class="dash-table" id="userTable">
+        <thead>
+          <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Scans</th><th>Status</th><th>Joined</th><th>Last Login</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="mono">#{{ u.id }}</td>
+            <td><strong>{{ u.username }}</strong></td>
+            <td class="text-muted">{{ u.email }}</td>
+            <td><span class="badge badge-{{ 'admin-role' if u.role == 'admin' else 'user-role' }}">{{ u.role }}</span></td>
+            <td class="mono">{{ u.scan_count }}</td>
+            <td><span class="badge badge-{{ 'safe' if u.is_active else 'malware' }}">{{ 'Active' if u.is_active else 'Banned' }}</span></td>
+            <td class="mono text-muted">{{ u.created_at[:10] }}</td>
+            <td class="mono text-muted">{{ u.last_login[:10] if u.last_login else '—' }}</td>
+            <td>
+              {% if u.role != 'admin' %}
+              <button class="action-btn danger" onclick="toggleUser({{ u.id }}, {{ u.is_active }})">
+                {{ 'Ban' if u.is_active else 'Unban' }}
+              </button>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9" class="empty-state">No users</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: URL SUBMISSIONS ═══ -->
+  <div class="tab-panel" id="tab-submissions">
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h3>URL Submissions <span class="count-badge">{{ submissions|length }}</span></h3>
+        <div class="filter-tabs">
+          <button class="ftab active" onclick="filterStatus(this,'all')">All</button>
+          <button class="ftab" onclick="filterStatus(this,'pending')">Pending</button>
+          <button class="ftab" onclick="filterStatus(this,'approved')">Approved</button>
+          <button class="ftab" onclick="filterStatus(this,'rejected')">Rejected</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="dash-table" id="subTable">
+          <thead>
+            <tr><th>URL</th><th>Submitted By</th><th>Suggested Label</th><th>Status</th><th>Submitted At</th><th>Admin Label</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            {% for s in submissions %}
+            <tr class="sub-row" data-status="{{ s.status }}">
+              <td class="url-cell" title="{{ s.url }}">{{ s.url[:55] }}{% if s.url|length > 55 %}…{% endif %}</td>
+              <td>{{ s.submitter_name or 'anonymous' }}</td>
+              <td><span class="badge badge-{{ s.suggested_label or 'unknown' }}">{{ s.suggested_label or '?' }}</span></td>
+              <td><span class="badge badge-status-{{ s.status }}">{{ s.status }}</span></td>
+              <td class="mono text-muted">{{ s.submitted_at[:16] }}</td>
+              <td>
+                {% if s.admin_label %}
+                <span class="badge badge-{{ s.admin_label }}">{{ s.admin_label }}</span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if s.status == 'pending' %}
+                <div class="review-actions">
+                  <select class="label-select" id="label-{{ s.id }}">
+                    <option value="">Set label…</option>
+                    <option value="benign">benign</option>
+                    <option value="phishing">phishing</option>
+                    <option value="defacement">defacement</option>
+                    <option value="malware">malware</option>
+                  </select>
+                  <button class="action-btn safe"   onclick="review({{ s.id }},'approved')">✓ Approve</button>
+                  <button class="action-btn danger"  onclick="review({{ s.id }},'rejected')">✕ Reject</button>
+                </div>
+                {% else %}
+                <span class="text-muted">Reviewed</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="empty-state">No submissions yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB: EXPORT DATASET ═══ -->
+  <div class="tab-panel" id="tab-export">
+    <div class="dash-grid-2">
+      <div class="dash-card">
+        <div class="dash-card-header"><h3>Export Approved URLs</h3></div>
+        <div class="export-section">
+          <p class="export-desc">Download all approved URL submissions as a CSV file ready for model retraining. Each row includes the URL and its admin-verified label.</p>
+          <div class="export-stats">
+            <div class="ex-stat">
+              <span class="ex-num">{{ stats.total_submissions }}</span>
+              <span class="ex-lbl">Total Submitted</span>
+            </div>
+            <div class="ex-stat">
+              <span class="ex-num">{{ stats.pending_submissions }}</span>
+              <span class="ex-lbl">Pending Review</span>
+            </div>
+            <div class="ex-stat">
+              <span class="ex-num" id="approvedCount">—</span>
+              <span class="ex-lbl">Ready to Export</span>
+            </div>
+          </div>
+          <div class="export-actions">
+            <a href="/admin/export/urls" class="export-btn">
+              ↓ Download URL Dataset CSV
+            </a>
+            <a href="/admin/export/scans" class="export-btn secondary">
+              ↓ Download Scan Logs CSV
+            </a>
+          </div>
+          <div class="export-note">
+            <strong>How to retrain:</strong>
+            <ol>
+              <li>Export the URL dataset CSV</li>
+              <li>Merge with <code>malicious_phish.csv</code></li>
+              <li>Run <code>python ml/train_model.py</code></li>
+              <li>Restart the server</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-header"><h3>Model Information</h3></div>
+        <div class="model-info">
+          <div class="model-row"><span>Algorithm</span><span>Random Forest</span></div>
+          <div class="model-row"><span>Trees</span><span>50</span></div>
+          <div class="model-row"><span>Max Depth</span><span>15</span></div>
+          <div class="model-row"><span>Training URLs</span><span>100,000</span></div>
+          <div class="model-row"><span>Features</span><span>33</span></div>
+          <div class="model-row"><span>ML Accuracy</span><span class="green">84.5%</span></div>
+          <div class="model-row"><span>Hybrid Accuracy</span><span class="green">~95%</span></div>
+          <div class="model-row"><span>Classes</span><span>benign · phishing · defacement · malware</span></div>
+        </div>
+        <div class="retrain-section">
+          <p class="text-muted" style="font-size:.85rem;margin-bottom:12px">Re-run training to incorporate new approved URLs into the model.</p>
+          <button class="export-btn" onclick="alert('Run: python ml/train_model.py in your terminal')">
+            🔄 Retrain Model (CLI)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────
+function showTab(name, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {overview:'Overview',scans:'Scan Logs',users:'Users',submissions:'URL Submissions',export:'Export Dataset'};
+  document.getElementById('tabTitle').textContent = titles[name] || name;
+}
+
+// Handle hash navigation
+const hash = location.hash.replace('#','');
+if (hash && document.getElementById('tab-'+hash)) {
+  showTab(hash, document.querySelector(`[onclick*="${hash}"]`));
+}
+
+// ── Live clock ────────────────────────────────────────────────────────────
+function updateTime() {
+  document.getElementById('liveTime').textContent = new Date().toLocaleTimeString();
+}
+updateTime(); setInterval(updateTime, 1000);
+
+// ── Table filter ──────────────────────────────────────────────────────────
+function filterTable(tableId, query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#' + tableId + ' tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── Status filter for submissions ──────────────────────────────────────────
+function filterStatus(btn, status) {
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sub-row').forEach(row => {
+    row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+  });
+}
+
+// ── Review submission ─────────────────────────────────────────────────────
+async function review(id, action) {
+  const labelEl = document.getElementById('label-' + id);
+  const label   = labelEl ? labelEl.value : '';
+  if (action === 'approved' && !label) {
+    alert('Please select a label before approving');
+    return;
+  }
+  const res = await fetch('/admin/review-submission', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id, action, label})
+  });
+  const data = await res.json();
+  if (data.success) location.reload();
+  else alert('Error: ' + data.error);
+}
+
+// ── Toggle user ban ────────────────────────────────────────────────────────
+async function toggleUser(id, currentStatus) {
+  const action = currentStatus ? 'ban' : 'unban';
+  if (!confirm(`${action.charAt(0).toUpperCase()+action.slice(1)} this user?`)) return;
+  const res  = await fetch('/admin/toggle-user', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({id, action})
+  });
+  const data = await res.json();
+  if (data.success) location.reload();
+  else alert('Error: ' + data.error);
+}
+
+// ── Load approved count ───────────────────────────────────────────────────
+fetch('/admin/approved-count').then(r=>r.json()).then(d=>{
+  const el = document.getElementById('approvedCount');
+  if (el) el.textContent = d.count;
+}).catch(()=>{});
+</script>
+</body>
+</html>

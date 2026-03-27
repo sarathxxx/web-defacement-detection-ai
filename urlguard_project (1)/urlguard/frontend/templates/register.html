@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URLGuard — Create Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <link rel="stylesheet" href="/static/css/auth.css"/>
+</head>
+<body class="auth-body">
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<div class="auth-wrapper">
+  <!-- Left panel -->
+  <div class="auth-brand-panel">
+    <div class="brand-content">
+      <div class="auth-logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">URL<strong>Guard</strong></span>
+      </div>
+      <h2 class="brand-headline">Start Scanning<br/><span class="gradient-text">For Free Today</span></h2>
+      <p class="brand-sub">Join URLGuard and get access to real-time URL threat detection, scan history, and the ability to contribute URLs to our growing dataset.</p>
+
+      <div class="feature-list">
+        <div class="feat-item"><span class="feat-check">✓</span> Unlimited URL scans</div>
+        <div class="feat-item"><span class="feat-check">✓</span> Full scan history</div>
+        <div class="feat-item"><span class="feat-check">✓</span> Submit URLs for dataset</div>
+        <div class="feat-item"><span class="feat-check">✓</span> API access</div>
+        <div class="feat-item"><span class="feat-check">✓</span> Threat reports</div>
+      </div>
+
+      <div class="brand-tags" style="margin-top:32px">
+        <span>Free Forever</span>
+        <span>No Credit Card</span>
+        <span>Instant Access</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="auth-form-panel">
+    <div class="auth-form-card">
+      <div class="auth-form-header">
+        <h1>Create account</h1>
+        <p>Join the URLGuard security community</p>
+      </div>
+
+      {% if error %}
+      <div class="auth-alert error">
+        <span>⚠</span> {{ error }}
+      </div>
+      {% endif %}
+
+      <form class="auth-form" method="POST" action="/register" id="regForm">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-field">
+              <span class="field-icon">👤</span>
+              <input type="text" id="username" name="username"
+                     placeholder="Choose a username"
+                     value="{{ username or '' }}"
+                     minlength="3" maxlength="30"
+                     autocomplete="username" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-field">
+              <span class="field-icon">✉</span>
+              <input type="email" id="email" name="email"
+                     placeholder="your@email.com"
+                     value="{{ email or '' }}"
+                     autocomplete="email" required/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-field">
+            <span class="field-icon">🔒</span>
+            <input type="password" id="password" name="password"
+                   placeholder="Minimum 8 characters"
+                   minlength="8"
+                   autocomplete="new-password" required
+                   oninput="checkPwStrength(this.value)"/>
+            <button type="button" class="toggle-pw" onclick="togglePw(this)">👁</button>
+          </div>
+          <div class="pw-strength-bar">
+            <div class="pw-strength-fill" id="pwFill"></div>
+          </div>
+          <div class="pw-strength-label" id="pwLabel"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <div class="input-field">
+            <span class="field-icon">🔒</span>
+            <input type="password" id="confirm_password" name="confirm_password"
+                   placeholder="Repeat your password"
+                   autocomplete="new-password" required/>
+            <button type="button" class="toggle-pw" onclick="togglePw(this)">👁</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" required/>
+            I agree to the <a href="#" style="color:var(--cyan)">Terms of Service</a>
+          </label>
+        </div>
+
+        <button type="submit" class="auth-btn" onclick="return validateForm()">
+          Create Account <span>→</span>
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <div class="auth-switch">
+        Already have an account? <a href="/login">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePw(btn) {
+  const inp = btn.previousElementSibling;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function checkPwStrength(pw) {
+  const fill  = document.getElementById('pwFill');
+  const label = document.getElementById('pwLabel');
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const levels = [
+    {pct:'20%', color:'#ef4444', text:'Very Weak'},
+    {pct:'40%', color:'#f59e0b', text:'Weak'},
+    {pct:'60%', color:'#f59e0b', text:'Fair'},
+    {pct:'80%', color:'#10b981', text:'Strong'},
+    {pct:'100%',color:'#10b981', text:'Very Strong'},
+  ];
+  const lv = levels[Math.max(0, score-1)] || levels[0];
+  fill.style.width = lv.pct;
+  fill.style.background = lv.color;
+  label.textContent = pw.length ? lv.text : '';
+  label.style.color = lv.color;
+}
+
+function validateForm() {
+  const pw  = document.getElementById('password').value;
+  const cpw = document.getElementById('confirm_password').value;
+  if (pw !== cpw) {
+    alert('Passwords do not match');
+    return false;
+  }
+  return true;
+}
+</script>
+</body>
+</html>

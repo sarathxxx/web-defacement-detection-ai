@@ -1,0 +1,96 @@
+{
+  "accuracy": 0.8454,
+  "f1_weighted": 0.8464533254209815,
+  "class_names": [
+    "benign",
+    "phishing",
+    "defacement",
+    "malware"
+  ],
+  "risk_map": {
+    "0": "safe",
+    "1": "phishing",
+    "2": "defacement",
+    "3": "malware"
+  },
+  "feature_names": [
+    "url_length",
+    "hostname_length",
+    "path_length",
+    "query_length",
+    "num_dots",
+    "num_hyphens",
+    "num_underscores",
+    "num_slashes",
+    "num_at_signs",
+    "num_question_marks",
+    "num_equals",
+    "num_ampersands",
+    "num_percent",
+    "num_digits",
+    "num_letters",
+    "num_special_chars",
+    "num_subdomains",
+    "num_query_params",
+    "has_https",
+    "has_ip_address",
+    "has_port",
+    "has_at_sign",
+    "has_double_slash_in_path",
+    "has_hex_encoding",
+    "domain_in_subdomain",
+    "is_trusted_domain",
+    "url_entropy",
+    "hostname_entropy",
+    "path_entropy",
+    "num_suspicious_keywords",
+    "is_high_risk_tld",
+    "digit_ratio",
+    "letter_ratio"
+  ],
+  "n_features": 33,
+  "top_features": [
+    [
+      "letter_ratio",
+      0.08435712545992168
+    ],
+    [
+      "digit_ratio",
+      0.0817309209962487
+    ],
+    [
+      "path_length",
+      0.0633160856178603
+    ],
+    [
+      "num_slashes",
+      0.062119124617968285
+    ],
+    [
+      "num_subdomains",
+      0.06079306995610468
+    ],
+    [
+      "num_digits",
+      0.060359578513518655
+    ],
+    [
+      "path_entropy",
+      0.05198548710513268
+    ],
+    [
+      "hostname_entropy",
+      0.050211058807053816
+    ],
+    [
+      "num_dots",
+      0.04491554278231532
+    ],
+    [
+      "num_equals",
+      0.0440785632292694
+    ]
+  ],
+  "sample_per_class": 25000,
+  "hybrid_accuracy": 0.95
+}

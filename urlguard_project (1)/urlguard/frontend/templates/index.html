@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URLGuard — Malicious URL & Website Threat Detection</title>
+  <meta name="description" content="Instantly detect phishing, malware, and defacement threats in any URL." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<!-- HEADER -->
+<header class="header">
+  <nav class="nav container">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">URL<strong>Guard</strong></span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it Works</a>
+      <a href="#bulk-scan">Bulk Scan</a>
+      {% if user %}
+        {% if user.role == 'admin' %}
+          <a href="/admin" class="nav-badge" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,0.3)">⚙ Admin</a>
+        {% endif %}
+        <a href="/dashboard" class="nav-badge" style="background:var(--green-dim);color:var(--green);border-color:rgba(16,185,129,0.3)">👤 {{ user.username }}</a>
+        <a href="/logout" style="color:var(--text-muted);font-size:0.85rem">Sign Out</a>
+      {% else %}
+        <a href="/login" style="color:var(--text-muted)">Sign In</a>
+        <a href="/register" class="nav-badge">Get Started →</a>
+      {% endif %}
+    </div>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-tag">
+      <span class="pulse-dot"></span>
+      Powered by Random Forest ML · 33-feature URL Analysis
+    </div>
+    <h1 class="hero-title">
+      Detect Malicious<br/>
+      <span class="gradient-text">URLs Instantly</span>
+    </h1>
+    <p class="hero-sub">
+      Scan any website link for phishing, malware, defacement &amp; threats
+      in under a second. Trained on 651,000+ real-world URLs.
+    </p>
+
+    <!-- Scanner -->
+    <div class="scanner-card" id="scanner">
+      <div class="scanner-input-row">
+        <div class="input-wrap">
+          <span class="input-icon">🔗</span>
+          <input type="url" id="urlInput"
+            placeholder="Paste a URL to scan — e.g. https://example.com/login"
+            autocomplete="off" spellcheck="false"/>
+          <button class="clear-btn" id="clearBtn" title="Clear" style="display:none">✕</button>
+        </div>
+        <button class="scan-btn" id="scanBtn">
+          <span class="scan-btn-text">Scan Now</span>
+          <span class="scan-btn-icon">→</span>
+        </button>
+      </div>
+      <div class="scanner-hints">
+        <button class="hint-pill" onclick="setDemo('https://google.com')">google.com</button>
+        <button class="hint-pill" onclick="setDemo('http://paypal-login-verify.tk/update?id=9923')">phishing demo</button>
+        <button class="hint-pill" onclick="setDemo('http://192.168.1.1/admin/panel')">IP address</button>
+        <button class="hint-pill" onclick="setDemo('https://amazon-secure.xyz/checkout')">suspicious TLD</button>
+      </div>
+    </div>
+
+    <!-- Result panel -->
+    <div class="result-panel" id="resultPanel" style="display:none">
+      <div class="result-loading" id="resultLoading">
+        <div class="spinner"></div><p>Analysing URL…</p>
+      </div>
+      <div class="result-content" id="resultContent" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="stats-bar">
+  <div class="container stats-grid">
+    <div class="stat-item">
+      <span class="stat-number" id="statTotal">{{ stats.total_scanned }}</span>
+      <span class="stat-label">URLs Scanned</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-number danger" id="statThreats">{{ stats.threats_found }}</span>
+      <span class="stat-label">Threats Found</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number">651K+</span><span class="stat-label">Training URLs</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number accent">95%+</span><span class="stat-label">Hybrid Accuracy</span></div>
+    <div class="stat-divider"></div>
+    <div class="stat-item"><span class="stat-number">4</span><span class="stat-label">Threat Categories</span></div>
+  </div>
+</section>
+
+<!-- THREAT TYPES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">What We Detect</span>
+      <h2>Four Categories of URL Threats</h2>
+      <p>URLGuard analyses each link against 33 structural, lexical, and heuristic features to classify it into one of four categories.</p>
+    </div>
+    <div class="threat-grid">
+      <div class="threat-card safe">
+        <div class="threat-icon">✓</div>
+        <h3>Safe / Benign</h3>
+        <p>URLs from legitimate websites with no indicators of malicious activity. Verified through entropy analysis, domain reputation, and structural checks.</p>
+        <div class="threat-examples"><span>google.com</span><span>github.com</span><span>wikipedia.org</span></div>
+      </div>
+      <div class="threat-card phishing">
+        <div class="threat-icon">🎣</div>
+        <h3>Phishing</h3>
+        <p>Fake websites impersonating legitimate services to steal credentials. Often use lookalike domains and brand keywords.</p>
+        <div class="threat-examples"><span>paypal-secure.tk</span><span>apple-id-verify.pw</span><span>amazon-login.xyz</span></div>
+      </div>
+      <div class="threat-card defacement">
+        <div class="threat-icon">⚡</div>
+        <h3>Defacement</h3>
+        <p>Websites whose content has been altered by attackers, often to spread propaganda or demonstrate a security breach.</p>
+        <div class="threat-examples"><span>Hacked home pages</span><span>Content injection</span><span>Vandalism</span></div>
+      </div>
+      <div class="threat-card malware">
+        <div class="threat-icon">☠</div>
+        <h3>Malware</h3>
+        <p>URLs that distribute malware — ransomware, trojans, spyware, or drive-by downloads.</p>
+        <div class="threat-examples"><span>exe-download.win</span><span>free-software.gq</span><span>update-flash.cf</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Technology</span>
+      <h2>How URLGuard Works</h2>
+      <p>A full ML pipeline from raw URL string to threat classification in milliseconds.</p>
+    </div>
+    <div class="pipeline">
+      <div class="pipeline-step"><div class="step-num">01</div><div class="step-content"><h4>URL Ingestion</h4><p>Raw URL is normalised and decomposed into scheme, hostname, path, and query components.</p></div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">02</div><div class="step-content"><h4>Feature Extraction</h4><p>33 numeric features computed: length metrics, character counts, entropy scores, boolean flags, semantic signals.</p></div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">03</div><div class="step-content"><h4>Hybrid Classification</h4><p>4 rule overrides run first. If no rule fires, Random Forest (50 trees) predicts class probabilities.</p></div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><div class="step-num">04</div><div class="step-content"><h4>Threat Report</h4><p>Confidence, risk score, threat indicators, and feature breakdown returned in &lt;100ms.</p></div></div>
+    </div>
+    <div class="feature-tags-section">
+      <h3>Features Analysed</h3>
+      <div class="feature-tags">
+        <span>URL Length</span><span>Hostname Length</span><span>Path Length</span><span>Query Length</span>
+        <span>Dot Count</span><span>Hyphen Count</span><span>Slash Count</span><span>@ Symbol</span>
+        <span>Digit Ratio</span><span>Letter Ratio</span><span>URL Entropy</span><span>Hostname Entropy</span>
+        <span>Path Entropy</span><span>HTTPS Flag</span><span>IP Address Flag</span><span>Custom Port</span>
+        <span>Hex Encoding</span><span>Double Slash</span><span>Subdomain Levels</span><span>Query Params</span>
+        <span>High-Risk TLD</span><span>Brand in Subdomain</span><span>Suspicious Keywords</span><span>Trusted Domain</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BULK SCAN -->
+<section class="bulk-section" id="bulk-scan">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Bulk Analysis</span>
+      <h2>Scan Multiple URLs at Once</h2>
+      <p>Paste up to 10 URLs (one per line) for batch threat analysis.</p>
+    </div>
+    <div class="bulk-card">
+      <textarea id="bulkInput" placeholder="https://example.com&#10;http://suspicious-site.tk/login&#10;https://paypal.com&#10;http://malware-download.xyz/setup.exe" rows="6"></textarea>
+      <div class="bulk-actions">
+        <span class="bulk-note">Max 10 URLs per batch</span>
+        <button class="scan-btn bulk-scan-btn" id="bulkScanBtn"><span>Scan All</span><span>→</span></button>
+      </div>
+      <div class="bulk-results" id="bulkResults" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SUBMIT URL (logged in users) -->
+{% if user %}
+<section class="bulk-section" id="submit-url">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Contribute</span>
+      <h2>Submit a URL for the Dataset</h2>
+      <p>Found a malicious URL? Submit it to help improve the model. Admin will review and label it.</p>
+    </div>
+    <div class="bulk-card">
+      <div id="submitMsg"></div>
+      <div class="scanner-input-row" style="gap:12px">
+        <div class="input-wrap" style="flex:2">
+          <span class="input-icon">🔗</span>
+          <input type="url" id="submitUrl" placeholder="Enter a URL to submit for review…" autocomplete="off"/>
+        </div>
+        <select id="submitLabel" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:14px 12px;border-radius:12px;font-family:var(--font-body);font-size:0.9rem;outline:none;flex-shrink:0">
+          <option value="">Your guess…</option>
+          <option value="benign">benign</option>
+          <option value="phishing">phishing</option>
+          <option value="defacement">defacement</option>
+          <option value="malware">malware</option>
+        </select>
+        <button class="scan-btn" onclick="submitUrl()" style="flex-shrink:0">Submit</button>
+      </div>
+      <input type="text" id="submitNotes" placeholder="Optional: any notes about why this URL is suspicious…"
+        style="width:100%;margin-top:12px;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-family:var(--font-body);font-size:0.88rem;outline:none"/>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="bulk-section" style="padding:60px 0">
+  <div class="container" style="text-align:center">
+    <div class="section-header">
+      <span class="section-tag">Join the Community</span>
+      <h2>Help Improve URLGuard</h2>
+      <p>Create a free account to submit URLs to the training dataset and view your scan history.</p>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:8px">
+      <a href="/register" class="scan-btn" style="text-decoration:none;display:inline-flex">Create Free Account →</a>
+      <a href="/login" style="display:inline-flex;align-items:center;padding:14px 24px;border:1px solid var(--border);border-radius:12px;color:var(--text-muted);text-decoration:none;font-family:var(--font-display);font-weight:600">Sign In</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- SCAN HISTORY -->
+<section class="history-section">
+  <div class="container">
+    <div class="section-header left">
+      <h2>Recent Scans</h2>
+      <p>Last 20 URLs analysed in this session.</p>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No scans yet — try the scanner above ↑</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="logo-icon">⬡</span><strong>URLGuard</strong>
+      <span class="footer-tagline">AI-Powered URL Threat Detection</span>
+    </div>
+    <div class="footer-info">
+      <p>Trained on the <em>malicious_phish.csv</em> dataset (651k+ URLs).</p>
+      <p>For educational and research purposes. Exercise caution with unknown URLs.</p>
+    </div>
+    <div class="footer-accuracy">
+      <div class="accuracy-chip"><span class="accuracy-label">Hybrid Accuracy</span><span class="accuracy-value">~95%</span></div>
+      <div class="accuracy-chip"><span class="accuracy-label">F1 Score</span><span class="accuracy-value">84.6%</span></div>
+    </div>
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+<script>
+// URL submission (logged-in users only)
+async function submitUrl() {
+  const url   = document.getElementById('submitUrl')?.value?.trim();
+  const label = document.getElementById('submitLabel')?.value;
+  const notes = document.getElementById('submitNotes')?.value?.trim();
+  const msg   = document.getElementById('submitMsg');
+  if (!url) { msg.innerHTML = '<div class="auth-alert error" style="margin-bottom:12px"><span>⚠</span> Please enter a URL</div>'; return; }
+  try {
+    const res  = await fetch('/api/submit-url', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url, suggested_label:label, notes})
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.innerHTML = '<div class="auth-alert success" style="margin-bottom:12px"><span>✓</span> URL submitted for admin review. Thank you!</div>';
+      document.getElementById('submitUrl').value = '';
+      document.getElementById('submitNotes').value = '';
+    } else {
+      msg.innerHTML = `<div class="auth-alert error" style="margin-bottom:12px"><span>⚠</span> ${data.error}</div>`;
+    }
+  } catch(e) { msg.innerHTML = '<div class="auth-alert error" style="margin-bottom:12px"><span>⚠</span> Connection error</div>'; }
+}
+</script>
+</body>
+</html>

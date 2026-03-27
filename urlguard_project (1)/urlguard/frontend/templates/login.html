@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>URLGuard — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <link rel="stylesheet" href="/static/css/auth.css"/>
+</head>
+<body class="auth-body">
+
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<div class="auth-wrapper">
+  <!-- Left panel -->
+  <div class="auth-brand-panel">
+    <div class="brand-content">
+      <div class="auth-logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">URL<strong>Guard</strong></span>
+      </div>
+      <h2 class="brand-headline">Protect Every<br/><span class="gradient-text">Click You Make</span></h2>
+      <p class="brand-sub">AI-powered URL threat detection. Identify phishing, malware, and defacement before they reach your users.</p>
+      <div class="brand-stats">
+        <div class="brand-stat"><span class="bstat-num">651K+</span><span class="bstat-lbl">URLs Trained</span></div>
+        <div class="brand-stat"><span class="bstat-num">95%</span><span class="bstat-lbl">Accuracy</span></div>
+        <div class="brand-stat"><span class="bstat-num">&lt;100ms</span><span class="bstat-lbl">Scan Speed</span></div>
+      </div>
+      <div class="brand-tags">
+        <span>Phishing Detection</span>
+        <span>Malware Scanning</span>
+        <span>Defacement Alerts</span>
+        <span>ML-Powered</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="auth-form-panel">
+    <div class="auth-form-card">
+      <div class="auth-form-header">
+        <h1>Welcome back</h1>
+        <p>Sign in to your URLGuard account</p>
+      </div>
+
+      {% if error %}
+      <div class="auth-alert error">
+        <span>⚠</span> {{ error }}
+      </div>
+      {% endif %}
+
+      {% if success %}
+      <div class="auth-alert success">
+        <span>✓</span> {{ success }}
+      </div>
+      {% endif %}
+
+      <form class="auth-form" method="POST" action="/login">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <div class="input-field">
+            <span class="field-icon">👤</span>
+            <input type="text" id="username" name="username"
+                   placeholder="Enter your username"
+                   value="{{ username or '' }}"
+                   autocomplete="username" required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-field">
+            <span class="field-icon">🔒</span>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter your password"
+                   autocomplete="current-password" required/>
+            <button type="button" class="toggle-pw" onclick="togglePw(this)">👁</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember"/> Remember me
+          </label>
+        </div>
+
+        <button type="submit" class="auth-btn">
+          Sign In <span>→</span>
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <div class="auth-switch">
+        Don't have an account? <a href="/register">Create one free</a>
+      </div>
+
+      <div class="admin-hint">
+        <span class="hint-icon">⬡</span>
+        Demo admin: <code>admin</code> / <code>admin123</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePw(btn) {
+  const inp = btn.previousElementSibling;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+</script>
+</body>
+</html>
